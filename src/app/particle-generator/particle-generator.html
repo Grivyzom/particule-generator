@@ -1,0 +1,243 @@
+<div class="particle-container">
+  <canvas #canvas class="particle-canvas"></canvas>
+  
+  <!-- Instrucciones con animación de entrada -->
+  <div class="instructions" [class.hidden]="!showInstructions">
+    <div class="instructions-content">
+      <h1 class="title">
+        <span class="gradient-text">Generador de Partículas</span>
+      </h1>
+      
+      <div class="instruction-grid">
+        @if (!isMobile) {
+          <div class="instruction-item">
+            <div class="icon-wrapper move">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/>
+              </svg>
+            </div>
+            <p class="instruction-text">
+              <strong>Mueve el cursor</strong>
+              <span>para crear un rastro mágico</span>
+            </p>
+          </div>
+          
+          <div class="instruction-item">
+            <div class="icon-wrapper left-click">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M15 15v4.5m0-4.5h4.5m-4.5 0l5.25 5.25M9 15H4.5M9 15v4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25"/>
+              </svg>
+            </div>
+            <p class="instruction-text">
+              <strong>Click Izquierdo</strong>
+              <span>para explosiones de estrellas</span>
+            </p>
+          </div>
+          
+          <div class="instruction-item">
+            <div class="icon-wrapper right-click">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="6"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+            </div>
+            <p class="instruction-text">
+              <strong>Click Derecho</strong>
+              <span>para ondas de diamantes</span>
+            </p>
+          </div>
+        } @else {
+          <div class="instruction-item">
+            <div class="icon-wrapper move">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L12 22M12 2L8 6M12 2L16 6"/>
+              </svg>
+            </div>
+            <p class="instruction-text">
+              <strong>Desliza el dedo</strong>
+              <span>para crear un rastro mágico</span>
+            </p>
+          </div>
+          
+          <div class="instruction-item">
+            <div class="icon-wrapper left-click">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="1" fill="currentColor"/>
+              </svg>
+            </div>
+            <p class="instruction-text">
+              <strong>Toca la pantalla</strong>
+              <span>para explosiones de estrellas</span>
+            </p>
+          </div>
+          
+          <div class="instruction-item">
+            <div class="icon-wrapper right-click">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="9" r="7"/>
+                <circle cx="15" cy="15" r="7"/>
+              </svg>
+            </div>
+            <p class="instruction-text">
+              <strong>Dos dedos</strong>
+              <span>para ondas de diamantes</span>
+            </p>
+          </div>
+        }
+      </div>
+      
+      <p class="tip">✨ Experimenta y crea tu propia obra de arte ✨</p>
+    </div>
+  </div>
+  
+  <!-- Contador de partículas -->
+  <div class="particle-counter">
+    <div class="counter-content">
+      <span class="counter-icon">✨</span>
+      <span class="counter-number">{{ particleCount }}</span>
+      <span class="counter-label">partículas</span>
+    </div>
+  </div>
+
+  <!-- Menú de configuración -->
+  <div class="settings-menu" [class.open]="showSettingsMenu">
+    <div class="settings-content">
+      <div class="settings-header">
+        <h2>⚙️ Configuración</h2>
+        <button class="close-btn" (click)="toggleSettingsMenu()">✕</button>
+      </div>
+
+      <div class="settings-body">
+        <!-- Sección de Formas de Partículas -->
+        <div class="settings-section">
+          <h3>🎨 Formas de Partículas</h3>
+          
+          <div class="shape-config">
+            <label>Rastro del Cursor</label>
+            <div class="shape-options">
+              @for (shape of availableShapes; track shape.value) {
+                <button 
+                  class="shape-btn"
+                  [class.active]="getCurrentShape('trail') === shape.value"
+                  (click)="setTrailShape(shape.value)"
+                  [title]="shape.label">
+                  <span class="shape-icon">{{ shape.icon }}</span>
+                  <span class="shape-label">{{ shape.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="shape-config">
+            <label>Click Izquierdo</label>
+            <div class="shape-options">
+              @for (shape of availableShapes; track shape.value) {
+                <button 
+                  class="shape-btn"
+                  [class.active]="getCurrentShape('leftClick') === shape.value"
+                  (click)="setLeftClickShape(shape.value)"
+                  [title]="shape.label">
+                  <span class="shape-icon">{{ shape.icon }}</span>
+                  <span class="shape-label">{{ shape.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="shape-config">
+            <label>Click Derecho</label>
+            <div class="shape-options">
+              @for (shape of availableShapes; track shape.value) {
+                <button 
+                  class="shape-btn"
+                  [class.active]="getCurrentShape('rightClick') === shape.value"
+                  (click)="setRightClickShape(shape.value)"
+                  [title]="shape.label">
+                  <span class="shape-icon">{{ shape.icon }}</span>
+                  <span class="shape-label">{{ shape.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección de Colores -->
+        <div class="settings-section">
+          <h3>🎨 Paleta de Colores</h3>
+          
+          <div class="color-tabs">
+            <button 
+              class="color-tab"
+              [class.active]="activeColorTab === 'trail'"
+              (click)="setColorTab('trail')">
+              Rastro
+            </button>
+            <button 
+              class="color-tab"
+              [class.active]="activeColorTab === 'leftClick'"
+              (click)="setColorTab('leftClick')">
+              Click Izq
+            </button>
+            <button 
+              class="color-tab"
+              [class.active]="activeColorTab === 'rightClick'"
+              (click)="setColorTab('rightClick')">
+              Click Der
+            </button>
+          </div>
+
+          <div class="color-list">
+            @for (color of getActiveColors(); track color) {
+              <div class="color-item">
+                <div class="color-preview" [style.background-color]="color"></div>
+                <span class="color-code">{{ color }}</span>
+                <button 
+                  class="remove-color-btn"
+                  (click)="removeColor(color)"
+                  [disabled]="getActiveColors().length <= 1"
+                  title="Eliminar color">
+                  🗑️
+                </button>
+              </div>
+            }
+          </div>
+
+          <div class="add-color">
+            <input 
+              type="color" 
+              [(ngModel)]="newColor" 
+              class="color-picker">
+            <button class="add-color-btn" (click)="addColor()">
+              ➕ Agregar Color
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón para abrir configuración -->
+  <button 
+    class="settings-button" 
+    (click)="toggleSettingsMenu()"
+    [attr.aria-label]="showSettingsMenu ? 'Cerrar configuración' : 'Abrir configuración'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 1v6m0 6v6m5.196-13.804l-4.243 4.243m-2.828 2.828l-4.243 4.243m15.071 0l-4.243-4.243m-2.828-2.828l-4.243-4.243"/>
+    </svg>
+  </button>
+  
+  <!-- Botón para mostrar/ocultar instrucciones -->
+  <button 
+    class="help-button" 
+    (click)="toggleInstructions()"
+    [attr.aria-label]="showInstructions ? 'Ocultar instrucciones' : 'Mostrar instrucciones'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  </button>
+</div>
