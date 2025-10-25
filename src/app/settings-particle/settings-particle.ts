@@ -191,6 +191,58 @@ export class SettingsParticle {
     return value.toFixed(2);
   }
 
+  // ========== MÉTODOS DEL ATRACTOR GRAVITATORIO ==========
+
+  /**
+   * Alterna el estado del atractor gravitatorio
+   */
+  toggleAttractor(): void {
+    this.particleService().toggleAttractor();
+  }
+
+  /**
+   * Actualiza la constante gravitacional G_sim
+   */
+  updateGSim(value: number): void {
+    this.particleService().G_sim = value;
+  }
+
+  /**
+   * Actualiza la constante de crecimiento k_crecimiento
+   */
+  updateKCrecimiento(value: number): void {
+    this.particleService().k_crecimiento = value;
+
+    // Recalcular R_C si existe la singularidad
+    const singularity = this.particleService().getSingularityInfo();
+    if (singularity) {
+      singularity.R_C = value * singularity.M_S;
+    }
+  }
+
+  /**
+   * Actualiza la masa de partícula m_p
+   */
+  updateMp(value: number): void {
+    this.particleService().m_p = value;
+  }
+
+  /**
+   * Resetea la singularidad a sus valores iniciales
+   */
+  resetSingularity(): void {
+    this.particleService().resetSingularity();
+  }
+
+  /**
+   * Destruye la singularidad por completo
+   */
+  destroySingularity(): void {
+    this.particleService().destroySingularity();
+  }
+
+  // ========================================================
+
   /**
    * Alterna el estado de congelación de partículas
    */

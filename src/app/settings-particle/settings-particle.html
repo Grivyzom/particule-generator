@@ -250,6 +250,161 @@
       </div>
     </div>
 
+    <!-- Sección de Atractor Gravitatorio (Singularidad) -->
+    <div class="attractor-section">
+      <div class="attractor-header">
+        <div class="attractor-info">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="6"/>
+            <circle cx="12" cy="12" r="2"/>
+            <line x1="12" y1="2" x2="12" y2="6"/>
+            <line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="6" y2="12"/>
+            <line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+          <div class="attractor-text">
+            <span class="attractor-label">Atractor Gravitatorio</span>
+            <span class="attractor-description">Singularidad con acreción de masa</span>
+          </div>
+        </div>
+
+        <!-- Toggle switch para atractor -->
+        <label class="toggle-switch attractor-toggle" aria-label="Activar Atractor">
+          <input
+            type="checkbox"
+            [checked]="particleService().attractorEnabled"
+            (change)="toggleAttractor()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Controles del atractor (solo visibles cuando está activo) -->
+      <div class="attractor-controls" [class.visible]="particleService().attractorEnabled">
+
+        <!-- Información en tiempo real -->
+        @if (particleService().getSingularityInfo(); as singularity) {
+          <div class="singularity-stats">
+            <div class="stat-item">
+              <span class="stat-label">Masa (M_S):</span>
+              <span class="stat-value">{{ singularity.M_S.toFixed(2) }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Radio (R_C):</span>
+              <span class="stat-value">{{ singularity.R_C.toFixed(2) }} px</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Partículas absorbidas:</span>
+              <span class="stat-value">{{ singularity.particlesAbsorbed }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- Constante Gravitacional (G_sim) -->
+        <div class="attractor-control-item">
+          <label class="attractor-control-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 7l-5-5-5 5"/>
+            </svg>
+            Constante Gravitacional (G_sim)
+          </label>
+          <div class="attractor-control-value">{{ particleService().G_sim.toFixed(1) }}</div>
+        </div>
+        <div class="attractor-slider-container">
+          <input
+            type="range"
+            class="attractor-slider"
+            min="1"
+            max="200"
+            step="1"
+            [value]="particleService().G_sim"
+            (input)="updateGSim(+$any($event.target).value)">
+          <div class="attractor-markers">
+            <span class="marker-min">1 (Débil)</span>
+            <span class="marker-max">200 (Fuerte)</span>
+          </div>
+        </div>
+
+        <!-- Constante de Crecimiento (k_crecimiento) -->
+        <div class="attractor-control-item">
+          <label class="attractor-control-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+            </svg>
+            Constante de Crecimiento (k)
+          </label>
+          <div class="attractor-control-value">{{ particleService().k_crecimiento.toFixed(4) }}</div>
+        </div>
+        <div class="attractor-slider-container">
+          <input
+            type="range"
+            class="attractor-slider"
+            min="0.001"
+            max="0.1"
+            step="0.001"
+            [value]="particleService().k_crecimiento"
+            (input)="updateKCrecimiento(+$any($event.target).value)">
+          <div class="attractor-markers">
+            <span class="marker-min">0.001 (Lento)</span>
+            <span class="marker-max">0.1 (Rápido)</span>
+          </div>
+        </div>
+
+        <!-- Masa de Partícula (m_p) -->
+        <div class="attractor-control-item">
+          <label class="attractor-control-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="1"/>
+            </svg>
+            Masa de Partícula (m_p)
+          </label>
+          <div class="attractor-control-value">{{ particleService().m_p.toFixed(3) }}</div>
+        </div>
+        <div class="attractor-slider-container">
+          <input
+            type="range"
+            class="attractor-slider"
+            min="0.001"
+            max="0.1"
+            step="0.001"
+            [value]="particleService().m_p"
+            (input)="updateMp(+$any($event.target).value)">
+          <div class="attractor-markers">
+            <span class="marker-min">0.001 (Ligera)</span>
+            <span class="marker-max">0.1 (Pesada)</span>
+          </div>
+        </div>
+
+        <!-- Botones de control -->
+        <div class="attractor-buttons">
+          <button class="attractor-btn reset-btn" (click)="resetSingularity()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            Resetear Singularidad
+          </button>
+          <button class="attractor-btn destroy-btn" (click)="destroySingularity()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            Destruir
+          </button>
+        </div>
+
+        <!-- Warning info -->
+        <div class="attractor-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>La singularidad crece absorbiendo partículas. Ecuación: R_C = k · M_S</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Sección de Congelación de Partículas -->
     <div class="freeze-section">
       <div class="freeze-header">

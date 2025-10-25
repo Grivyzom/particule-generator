@@ -13,12 +13,25 @@ export interface Particle {
   maxLife: number;
   type: 'trail' | 'leftClick' | 'rightClick';
   shape: ParticleShape;
+  mass: number;  // m_p - Masa de la partícula (para física gravitatoria)
   rotation?: number;
   rotationSpeed?: number;
   blur?: number;
   glow?: boolean;
   electricPoints?: Array<{x: number, y: number}>; // Para rayos
   pokerSuit?: 'spade' | 'heart' | 'diamond' | 'club'; // Para cartas de poker
+}
+
+/**
+ * Singularidad - Atractor Gravitatorio
+ * Implementa un pozo gravitatorio que crece mediante acreción de partículas
+ */
+export interface Singularity {
+  x: number;               // Posición X
+  y: number;               // Posición Y
+  M_S: number;            // Masa acumulada (crece con cada partícula absorbida)
+  R_C: number;            // Radio de captura (horizonte de eventos)
+  particlesAbsorbed: number; // Contador de partículas absorbidas
 }
 
 export class ParticleService {
@@ -72,6 +85,23 @@ export class ParticleService {
 
   // Nivel de zoom actual
   private currentZoomLevel = 1;
+
+  // ========== SISTEMA DE ATRACTOR GRAVITATORIO (SINGULARIDAD) ==========
+
+  // Singularidad (puede ser null si no está activa)
+  private singularity: Singularity | null = null;
+
+  // Constantes físicas de la simulación
+  public G_sim = 50.0;              // Constante gravitacional simulada
+  public k_crecimiento = 0.01;      // Constante de crecimiento del radio (R_C = k · M_S)
+  public m_p = 0.01;                // Masa base de cada partícula
+  public M_S_inicial = 1000;        // Masa inicial de la singularidad
+
+  // Control del atractor
+  public attractorEnabled = false;  // Activar/desactivar el atractor
+  public showAttractorVisuals = true; // Mostrar visualización del horizonte
+
+  // ======================================================================
 
   // Colores personalizables para diferentes tipos de partículas
   public trailColors = [
@@ -168,6 +198,7 @@ export class ParticleService {
         maxLife: this.currentTrailShape === 'lightning' ? this.trailLifetime * 2 + Math.random() * 60 : this.trailLifetime + Math.random() * 40,
         type: 'trail',
         shape: this.currentTrailShape,
+        mass: this.m_p,  // Masa de la partícula
         blur: this.currentTrailShape === 'lightning' ? 8 : 3,
         glow: true
       };
@@ -220,6 +251,7 @@ export class ParticleService {
         maxLife: this.currentLeftClickShape === 'lightning' ? this.leftClickLifetime * 2 + Math.random() * 70 : this.leftClickLifetime + Math.random() * 40,
         type: 'leftClick',
         shape: this.currentLeftClickShape,
+        mass: this.m_p,  // Masa de la partícula
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.2,
         blur: this.currentLeftClickShape === 'lightning' ? 10 : 4,
@@ -278,6 +310,7 @@ export class ParticleService {
             maxLife: this.currentRightClickShape === 'lightning' ? this.rightClickLifetime * 2 + Math.random() * 80 : this.rightClickLifetime + Math.random() * 50,
             type: 'rightClick',
             shape: this.currentRightClickShape,
+            mass: this.m_p,  // Masa de la partícula
             rotation: angle,
             rotationSpeed: (Math.random() - 0.5) * 0.15,
             blur: this.currentRightClickShape === 'lightning' ? 12 : 5,
@@ -301,6 +334,50 @@ export class ParticleService {
     if (this.isParticlesFrozen) {
       return;
     }
+
+    // ========== FÍSICA DEL ATRACTOR GRAVITATORIO ==========
+    // Procesar atracción y acreción si el atractor está activo
+    if (this.attractorEnabled && this.singularity) {
+      for (let i = this.particles.length - 1; i >= 0; i--) {
+        const p = this.particles[i];
+
+        // Calcular distancia a la singularidad
+        const dx = this.singularity.x - p.x;
+        const dy = this.singularity.y - p.y;
+        const r = Math.sqrt(dx * dx + dy * dy);
+
+        // Mecánica de Acreción: Verificar si la partícula ha cruzado el horizonte de eventos
+        if (r <= this.singularity.R_C) {
+          // Absorción: Transferir masa de la partícula a la singularidad
+          this.singularity.M_S += p.mass;
+          this.singularity.particlesAbsorbed++;
+
+          // Recalcular Radio de Captura: R_C = k_crecimiento · M_S
+          this.singularity.R_C = this.k_crecimiento * this.singularity.M_S;
+
+          // Eliminar partícula inmediatamente
+          this.particles.splice(i, 1);
+          continue; // Saltar al siguiente ciclo
+        }
+
+        // Física Gravitatoria: Aplicar fuerza de atracción
+        // F_g = G_sim · (M_S · m_p) / r²
+        // a = F_g / m_p = G_sim · M_S / r²
+        if (r > 0) { // Evitar división por cero
+          const F_g = this.G_sim * (this.singularity.M_S * p.mass) / (r * r);
+          const acceleration = F_g / p.mass; // a = F_g / m_p
+
+          // Componentes direccionales (vector unitario hacia la singularidad)
+          const dirX = dx / r;
+          const dirY = dy / r;
+
+          // Aplicar aceleración como cambio en velocidad
+          p.vx += dirX * acceleration;
+          p.vy += dirY * acceleration;
+        }
+      }
+    }
+    // ========================================================
 
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
@@ -410,28 +487,34 @@ export class ParticleService {
     // Dibujar partículas
     for (const p of this.particles) {
       this.ctx.save();
-      
+
       // Aplicar blur y glow
       if (p.glow) {
         this.ctx.shadowBlur = p.blur || 0;
         this.ctx.shadowColor = p.color;
       }
-      
+
       this.ctx.globalAlpha = p.alpha;
       this.ctx.fillStyle = p.color;
-      
+
       // Dibujar según el tipo
       this.ctx.translate(p.x, p.y);
-      
+
       if (p.rotation !== undefined) {
         this.ctx.rotate(p.rotation);
       }
-      
+
       // Dibujar según la forma
       this.drawShape(p);
-      
+
       this.ctx.restore();
     }
+
+    // ========== VISUALIZACIÓN DEL ATRACTOR GRAVITATORIO ==========
+    if (this.attractorEnabled && this.singularity && this.showAttractorVisuals) {
+      this.drawSingularity(this.singularity);
+    }
+    // ==============================================================
   }
 
   private drawShape(p: Particle): void {
@@ -665,6 +748,70 @@ export class ParticleService {
     this.ctx.fillRect(cx - size * 0.15, cy + size * 0.5, size * 0.3, size * 0.5);
   }
 
+  /**
+   * Dibuja la Singularidad (Atractor Gravitatorio) con su horizonte de eventos
+   */
+  private drawSingularity(s: Singularity): void {
+    this.ctx.save();
+
+    // 1. Dibujar el horizonte de eventos (Radio de Captura R_C)
+    // Círculo exterior con gradiente radial
+    const gradient = this.ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.R_C);
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 0.9)');      // Centro muy oscuro
+    gradient.addColorStop(0.7, 'rgba(30, 10, 50, 0.6)'); // Púrpura oscuro
+    gradient.addColorStop(0.9, 'rgba(100, 50, 200, 0.3)'); // Púrpura brillante en el borde
+    gradient.addColorStop(1, 'rgba(150, 100, 255, 0)');  // Transparente
+
+    this.ctx.fillStyle = gradient;
+    this.ctx.beginPath();
+    this.ctx.arc(s.x, s.y, s.R_C, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // 2. Anillo del horizonte de eventos (borde brillante)
+    this.ctx.strokeStyle = 'rgba(150, 100, 255, 0.8)';
+    this.ctx.lineWidth = 2;
+    this.ctx.shadowBlur = 15;
+    this.ctx.shadowColor = 'rgba(150, 100, 255, 1)';
+    this.ctx.beginPath();
+    this.ctx.arc(s.x, s.y, s.R_C, 0, Math.PI * 2);
+    this.ctx.stroke();
+
+    // 3. Núcleo central (singularidad)
+    const coreGradient = this.ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 10);
+    coreGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    coreGradient.addColorStop(0.3, 'rgba(200, 150, 255, 1)');
+    coreGradient.addColorStop(1, 'rgba(100, 50, 200, 0)');
+
+    this.ctx.fillStyle = coreGradient;
+    this.ctx.shadowBlur = 30;
+    this.ctx.shadowColor = 'rgba(200, 150, 255, 1)';
+    this.ctx.beginPath();
+    this.ctx.arc(s.x, s.y, 10, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // 4. Efecto de distorsión (anillos concéntricos)
+    this.ctx.shadowBlur = 0;
+    for (let i = 1; i <= 3; i++) {
+      const ringRadius = s.R_C * (0.3 + i * 0.2);
+      this.ctx.strokeStyle = `rgba(150, 100, 255, ${0.3 - i * 0.08})`;
+      this.ctx.lineWidth = 1;
+      this.ctx.beginPath();
+      this.ctx.arc(s.x, s.y, ringRadius, 0, Math.PI * 2);
+      this.ctx.stroke();
+    }
+
+    this.ctx.restore();
+
+    // 5. Información de debug (opcional, puede comentarse)
+    this.ctx.save();
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    this.ctx.font = '12px monospace';
+    this.ctx.fillText(`M_S: ${s.M_S.toFixed(2)}`, s.x + s.R_C + 10, s.y - 20);
+    this.ctx.fillText(`R_C: ${s.R_C.toFixed(2)}`, s.x + s.R_C + 10, s.y);
+    this.ctx.fillText(`Absorbed: ${s.particlesAbsorbed}`, s.x + s.R_C + 10, s.y + 20);
+    this.ctx.restore();
+  }
+
   getParticleCount(): number {
     return this.particles.length;
   }
@@ -689,6 +836,78 @@ export class ParticleService {
   clearAllParticles(): void {
     this.particles = [];
   }
+
+  // ========== MÉTODOS DE CONTROL DEL ATRACTOR GRAVITATORIO ==========
+
+  /**
+   * Crea y activa la Singularidad en una posición específica
+   */
+  createSingularity(x: number, y: number): void {
+    // Calcular R_C inicial: R_C = k_crecimiento · M_S_inicial
+    const initialR_C = this.k_crecimiento * this.M_S_inicial;
+
+    this.singularity = {
+      x,
+      y,
+      M_S: this.M_S_inicial,
+      R_C: initialR_C,
+      particlesAbsorbed: 0
+    };
+
+    this.attractorEnabled = true;
+  }
+
+  /**
+   * Mueve la Singularidad a una nueva posición
+   */
+  moveSingularity(x: number, y: number): void {
+    if (this.singularity) {
+      this.singularity.x = x;
+      this.singularity.y = y;
+    }
+  }
+
+  /**
+   * Activa/desactiva el atractor gravitatorio
+   */
+  toggleAttractor(): void {
+    this.attractorEnabled = !this.attractorEnabled;
+
+    // Si se activa y no existe singularidad, crearla en el centro
+    if (this.attractorEnabled && !this.singularity) {
+      const centerX = this.canvas.width / 2;
+      const centerY = this.canvas.height / 2;
+      this.createSingularity(centerX, centerY);
+    }
+  }
+
+  /**
+   * Reinicia la Singularidad a sus valores iniciales
+   */
+  resetSingularity(): void {
+    if (this.singularity) {
+      this.singularity.M_S = this.M_S_inicial;
+      this.singularity.R_C = this.k_crecimiento * this.M_S_inicial;
+      this.singularity.particlesAbsorbed = 0;
+    }
+  }
+
+  /**
+   * Destruye la Singularidad por completo
+   */
+  destroySingularity(): void {
+    this.singularity = null;
+    this.attractorEnabled = false;
+  }
+
+  /**
+   * Obtiene información de la Singularidad actual
+   */
+  getSingularityInfo(): Singularity | null {
+    return this.singularity;
+  }
+
+  // ==================================================================
 
   destroy(): void {
     if (this.animationFrameId) {
