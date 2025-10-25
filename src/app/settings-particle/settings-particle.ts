@@ -269,6 +269,13 @@ export class SettingsParticle {
     return this.particleService().getSingularityCount();
   }
 
+  /**
+   * Alterna el modo de creación de atractores
+   */
+  toggleCreationMode(): void {
+    this.particleService().attractorCreationMode = !this.particleService().attractorCreationMode;
+  }
+
   // ========================================================
 
   /**

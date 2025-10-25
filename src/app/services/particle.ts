@@ -110,6 +110,7 @@ export class ParticleService {
   // Control del atractor
   public attractorEnabled = false;  // Activar/desactivar el atractor
   public showAttractorVisuals = true; // Mostrar visualización del horizonte
+  public attractorCreationMode = false; // Modo de creación de atractores con clicks
 
   // ======================================================================
 
@@ -1109,6 +1110,48 @@ export class ParticleService {
    */
   getSingularityCount(): number {
     return this.singularities.length;
+  }
+
+  /**
+   * Detecta si un punto (x, y) está dentro del área de un atractor
+   * Retorna el atractor si está dentro, null si no
+   */
+  getSingularityAtPosition(x: number, y: number): Singularity | null {
+    // Buscar en orden inverso para priorizar los más recientes (dibujados encima)
+    for (let i = this.singularities.length - 1; i >= 0; i--) {
+      const S = this.singularities[i];
+      const dx = x - S.x;
+      const dy = y - S.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Usar R_C como área de detección
+      if (distance <= S.R_C) {
+        return S;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Mueve un atractor a una nueva posición
+   */
+  moveSingularity(singularityId: number, newX: number, newY: number): void {
+    const singularity = this.singularities.find(s => s.id === singularityId);
+    if (singularity) {
+      singularity.x = newX;
+      singularity.y = newY;
+    }
+  }
+
+  /**
+   * Actualiza la velocidad de un atractor (útil para drag and drop)
+   */
+  setSingularityVelocity(singularityId: number, vx: number, vy: number): void {
+    const singularity = this.singularities.find(s => s.id === singularityId);
+    if (singularity) {
+      singularity.vx = vx;
+      singularity.vy = vy;
+    }
   }
 
   // ==================================================================

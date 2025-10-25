@@ -44,7 +44,13 @@ export class ParticleGenerator implements AfterViewInit, OnDestroy {
   // Configuración de colores
   protected activeColorTab: 'trail' | 'leftClick' | 'rightClick' = 'trail';
   protected newColor = '#FF6B9D';
-  
+
+  // Drag and drop de atractores
+  private isDraggingSingularity = false;
+  private draggedSingularityId: number | null = null;
+  private lastMouseX = 0;
+  private lastMouseY = 0;
+
   private updateCounterInterval?: number;
   private instructionsTimeout?: number;
 
@@ -82,18 +88,73 @@ export class ParticleGenerator implements AfterViewInit, OnDestroy {
     this.checkIfMobile();
   }
 
+  @HostListener('mousedown', ['$event'])
+  onMouseDown(event: MouseEvent): void {
+    if (!this.isMobile && this.particleService.attractorEnabled) {
+      const coords = this.getAdjustedCoordinates(event.clientX, event.clientY);
+      const singularity = this.particleService.getSingularityAtPosition(coords.x, coords.y);
+
+      if (singularity) {
+        // Iniciar drag del atractor
+        this.isDraggingSingularity = true;
+        this.draggedSingularityId = singularity.id;
+        this.lastMouseX = coords.x;
+        this.lastMouseY = coords.y;
+        // Detener el momento del atractor cuando se empieza a arrastrar
+        this.particleService.setSingularityVelocity(singularity.id, 0, 0);
+        event.preventDefault();
+      }
+    }
+  }
+
   @HostListener('mousemove', ['$event'])
   onMouseMove(event: MouseEvent): void {
     if (!this.isMobile) {
       const coords = this.getAdjustedCoordinates(event.clientX, event.clientY);
-      this.particleService.createTrailParticles(coords.x, coords.y);
+
+      // Si está arrastrando un atractor, moverlo
+      if (this.isDraggingSingularity && this.draggedSingularityId !== null) {
+        this.particleService.moveSingularity(this.draggedSingularityId, coords.x, coords.y);
+        this.lastMouseX = coords.x;
+        this.lastMouseY = coords.y;
+      } else {
+        // Crear partículas de rastro solo si no está arrastrando
+        this.particleService.createTrailParticles(coords.x, coords.y);
+      }
+
       this.hideInstructionsOnInteraction();
+    }
+  }
+
+  @HostListener('mouseup', ['$event'])
+  onMouseUp(event: MouseEvent): void {
+    if (this.isDraggingSingularity) {
+      this.isDraggingSingularity = false;
+      this.draggedSingularityId = null;
     }
   }
 
   @HostListener('click', ['$event'])
   onClick(event: MouseEvent): void {
     const coords = this.getAdjustedCoordinates(event.clientX, event.clientY);
+
+    // Si está en modo de creación de atractores, crear un atractor
+    if (this.particleService.attractorCreationMode) {
+      this.particleService.createSingularity(coords.x, coords.y);
+      this.hideInstructionsOnInteraction();
+      return;
+    }
+
+    // Verificar si el click fue sobre un atractor (evitar crear partículas)
+    if (this.particleService.attractorEnabled) {
+      const singularity = this.particleService.getSingularityAtPosition(coords.x, coords.y);
+      if (singularity) {
+        // Click sobre un atractor, no hacer nada
+        return;
+      }
+    }
+
+    // Crear partículas normalmente
     this.particleService.createLeftClickParticles(coords.x, coords.y);
     this.hideInstructionsOnInteraction();
   }

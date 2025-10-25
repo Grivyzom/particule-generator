@@ -450,6 +450,41 @@
           </div>
         </div>
 
+        <!-- Modo de creación de atractores -->
+        <div class="attractor-creation-mode">
+          <div class="creation-mode-header">
+            <div class="creation-mode-info">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14"/>
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+              <div class="creation-mode-text">
+                <span class="creation-mode-label">Modo Creación</span>
+                <span class="creation-mode-description">Click para crear atractores</span>
+              </div>
+            </div>
+
+            <label class="toggle-switch creation-toggle" aria-label="Activar modo de creación">
+              <input
+                type="checkbox"
+                [checked]="particleService().attractorCreationMode"
+                (change)="toggleCreationMode()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          @if (particleService().attractorCreationMode) {
+            <div class="creation-mode-hint">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              <span>Haz click en el canvas para crear nuevos atractores. Arrastra los atractores existentes para moverlos.</span>
+            </div>
+          }
+        </div>
+
         <!-- Botones de control -->
         <div class="attractor-buttons">
           <button class="attractor-btn reset-btn" (click)="resetAllSingularities()">
