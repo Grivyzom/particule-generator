@@ -1,0 +1,298 @@
+<div class="settings-particle-container">
+  <div class="settings-particle-header">
+    <h3>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+      Configuración de Partículas
+    </h3>
+  </div>
+
+  <div class="settings-particle-body">
+    @for (type of particleTypes; track type) {
+      @let config = getParticleConfig(type);
+
+      <div class="particle-type-section" [class.disabled]="!config.enabled">
+        <!-- Header de la sección con toggle -->
+        <div class="particle-type-header">
+          <div class="particle-type-info">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="particle-type-icon">
+              <path [attr.d]="config.icon"/>
+            </svg>
+            <span class="particle-type-label">{{ config.label }}</span>
+          </div>
+
+          <!-- Toggle switch -->
+          <label class="toggle-switch" [attr.aria-label]="'Habilitar ' + config.label">
+            <input
+              type="checkbox"
+              [checked]="config.enabled"
+              (change)="toggleEnabled(type)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Controles de tiempo de vida -->
+        <div class="particle-type-controls" [class.visible]="config.enabled">
+          <div class="lifetime-control">
+            <label class="lifetime-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Tiempo de Vida
+            </label>
+
+            <div class="lifetime-value">
+              {{ formatLifetime(config.lifetime) }}
+            </div>
+          </div>
+
+          <!-- Barra deslizadora (slider) -->
+          <div class="lifetime-slider-container">
+            <input
+              type="range"
+              class="lifetime-slider"
+              [min]="config.minLifetime"
+              [max]="config.maxLifetime"
+              [value]="config.lifetime"
+              [disabled]="!config.enabled"
+              (input)="updateLifetime(type, +$any($event.target).value)"
+              [attr.aria-label]="'Ajustar tiempo de vida de ' + config.label">
+
+            <div class="lifetime-markers">
+              <span class="marker-min">{{ formatLifetime(config.minLifetime) }}</span>
+              <span class="marker-max">{{ formatLifetime(config.maxLifetime) }}</span>
+            </div>
+          </div>
+
+          <!-- Indicador visual del nivel -->
+          <div class="lifetime-indicator">
+            <div
+              class="lifetime-fill"
+              [style.width.%]="((config.lifetime - config.minLifetime) / (config.maxLifetime - config.minLifetime)) * 100">
+            </div>
+          </div>
+
+          <!-- Controles de cantidad de partículas -->
+          <div class="particle-count-control">
+            <label class="particle-count-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1"/>
+                <circle cx="12" cy="5" r="1"/>
+                <circle cx="12" cy="19" r="1"/>
+                <circle cx="5" cy="12" r="1"/>
+                <circle cx="19" cy="12" r="1"/>
+                <circle cx="7.5" cy="7.5" r="1"/>
+                <circle cx="16.5" cy="7.5" r="1"/>
+                <circle cx="7.5" cy="16.5" r="1"/>
+                <circle cx="16.5" cy="16.5" r="1"/>
+              </svg>
+              Cantidad de Partículas
+            </label>
+
+            <div class="particle-count-value">
+              {{ config.particleCount }} {{ config.particleCountUnit }}
+            </div>
+          </div>
+
+          <!-- Barra deslizadora de cantidad -->
+          <div class="particle-count-slider-container">
+            <input
+              type="range"
+              class="particle-count-slider"
+              [min]="config.minParticleCount"
+              [max]="config.maxParticleCount"
+              [value]="config.particleCount"
+              [disabled]="!config.enabled"
+              (input)="updateParticleCount(type, +$any($event.target).value)"
+              [attr.aria-label]="'Ajustar cantidad de partículas de ' + config.label">
+
+            <div class="particle-count-markers">
+              <span class="marker-min">{{ config.minParticleCount }}</span>
+              <span class="marker-max">{{ config.maxParticleCount }}</span>
+            </div>
+          </div>
+
+          <!-- Indicador visual de cantidad -->
+          <div class="particle-count-indicator">
+            <div
+              class="particle-count-fill"
+              [style.width.%]="((config.particleCount - config.minParticleCount) / (config.maxParticleCount - config.minParticleCount)) * 100">
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Sección de Mecánicas Avanzadas -->
+    <div class="advanced-mechanics-section">
+      <div class="advanced-mechanics-header">
+        <div class="advanced-mechanics-info">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v6m0 6v6m5.196-13.804l-4.243 4.243m-2.828 2.828l-4.243 4.243m15.071 0l-4.243-4.243m-2.828-2.828l-4.243-4.243"/>
+            <circle cx="12" cy="12" r="10" opacity="0.3"/>
+          </svg>
+          <span class="advanced-mechanics-label">Mecánicas Avanzadas</span>
+        </div>
+
+        <!-- Toggle switch para mecánicas avanzadas -->
+        <label class="toggle-switch" aria-label="Habilitar Mecánicas Avanzadas">
+          <input
+            type="checkbox"
+            [checked]="particleService().advancedMechanicsEnabled"
+            (change)="toggleAdvancedMechanics()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Controles avanzados (solo visibles cuando están habilitadas) -->
+      <div class="advanced-controls" [class.visible]="particleService().advancedMechanicsEnabled">
+        <!-- Control de Gravedad -->
+        <div class="advanced-control-item">
+          <label class="advanced-control-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+            Gravedad
+          </label>
+          <div class="advanced-control-value">{{ formatAdvancedValue(particleService().gravity) }}</div>
+        </div>
+
+        <div class="advanced-slider-container">
+          <input
+            type="range"
+            class="advanced-slider"
+            min="0"
+            max="0.5"
+            step="0.01"
+            [value]="particleService().gravity"
+            (input)="updateGravity(+$any($event.target).value)">
+          <div class="advanced-markers">
+            <span class="marker-min">0 (Sin gravedad)</span>
+            <span class="marker-max">0.5 (Fuerte)</span>
+          </div>
+        </div>
+
+        <!-- Control de Fricción -->
+        <div class="advanced-control-item">
+          <label class="advanced-control-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M2 12h20M18 6l-12 12M6 6l12 12" opacity="0.5"/>
+            </svg>
+            Fricción
+          </label>
+          <div class="advanced-control-value">{{ formatAdvancedValue(particleService().friction) }}</div>
+        </div>
+
+        <div class="advanced-slider-container">
+          <input
+            type="range"
+            class="advanced-slider"
+            min="0.8"
+            max="1"
+            step="0.01"
+            [value]="particleService().friction"
+            (input)="updateFriction(+$any($event.target).value)">
+          <div class="advanced-markers">
+            <span class="marker-min">0.8 (Fricción alta)</span>
+            <span class="marker-max">1.0 (Sin fricción)</span>
+          </div>
+        </div>
+
+        <!-- Control de Velocidad -->
+        <div class="advanced-control-item">
+          <label class="advanced-control-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+            Velocidad Inicial
+          </label>
+          <div class="advanced-control-value">{{ formatAdvancedValue(particleService().speedMultiplier) }}x</div>
+        </div>
+
+        <div class="advanced-slider-container">
+          <input
+            type="range"
+            class="advanced-slider"
+            min="0.5"
+            max="3"
+            step="0.1"
+            [value]="particleService().speedMultiplier"
+            (input)="updateSpeedMultiplier(+$any($event.target).value)">
+          <div class="advanced-markers">
+            <span class="marker-min">0.5x (Lento)</span>
+            <span class="marker-max">3x (Muy rápido)</span>
+          </div>
+        </div>
+
+        <!-- Indicador de advertencia -->
+        <div class="advanced-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>Ajusta estos valores para experimentar con diferentes físicas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Congelación de Partículas -->
+    <div class="freeze-section">
+      <div class="freeze-header">
+        <div class="freeze-info">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12h20M12 2v20M6 6l12 12M6 18l12-12"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+          <div class="freeze-text">
+            <span class="freeze-label">Congelar Partículas</span>
+            <span class="freeze-description">Ideal para capturar imágenes estáticas</span>
+          </div>
+        </div>
+
+        <!-- Toggle switch para congelar -->
+        <label class="toggle-switch freeze-toggle" aria-label="Congelar Partículas">
+          <input
+            type="checkbox"
+            [checked]="particleService().isParticlesFrozen"
+            (change)="toggleFreezeParticles()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Información adicional cuando está congelado -->
+      <div class="freeze-info-box" [class.visible]="particleService().isParticlesFrozen">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <span>Las partículas están congeladas. Al desactivar, se limpiará el canvas.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nota informativa -->
+  <div class="settings-particle-footer">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="16" x2="12" y2="12"/>
+      <line x1="12" y1="8" x2="12.01" y2="8"/>
+    </svg>
+    <span>Desactiva tipos de partículas para mejorar el rendimiento</span>
+  </div>
+</div>

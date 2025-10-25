@@ -1,0 +1,788 @@
+/* Contenedor principal */
+.settings-particle-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0;
+}
+
+/* Header */
+.settings-particle-header {
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(0, 245, 255, 0.3);
+}
+
+.settings-particle-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #ffffff;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-particle-header svg {
+  color: #00f5ff;
+  filter: drop-shadow(0 0 5px rgba(0, 245, 255, 0.8));
+}
+
+/* Body */
+.settings-particle-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Sección de cada tipo de partícula */
+.particle-type-section {
+  background: rgba(10, 10, 20, 0.5);
+  backdrop-filter: blur(10px);
+  border: 2px solid #00f5ff;
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.3), inset 0 0 10px rgba(0, 245, 255, 0.05);
+}
+
+.particle-type-section:hover {
+  box-shadow: 0 0 25px rgba(0, 245, 255, 0.5), inset 0 0 15px rgba(0, 245, 255, 0.1);
+}
+
+.particle-type-section.disabled {
+  opacity: 0.5;
+  border-color: rgba(0, 245, 255, 0.3);
+}
+
+/* Header de cada tipo */
+.particle-type-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.particle-type-info {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.particle-type-icon {
+  color: #00f5ff;
+  filter: drop-shadow(0 0 3px rgba(0, 245, 255, 0.6));
+}
+
+.particle-type-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(0, 245, 255, 0.3);
+  transition: all 0.3s;
+  border-radius: 26px;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  bottom: 2px;
+  background: linear-gradient(135deg, #666, #999);
+  transition: all 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: rgba(0, 245, 255, 0.2);
+  border-color: #00f5ff;
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.5), inset 0 0 10px rgba(0, 245, 255, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+  background: linear-gradient(135deg, #00f5ff, #00d4ff);
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch:hover .toggle-slider {
+  border-color: rgba(0, 245, 255, 0.6);
+}
+
+/* Controles de tiempo de vida */
+.particle-type-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.particle-type-controls.visible {
+  opacity: 1;
+  max-height: 600px;
+}
+
+.lifetime-control {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 245, 255, 0.2);
+}
+
+.lifetime-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.lifetime-label svg {
+  color: #00f5ff;
+  filter: drop-shadow(0 0 3px rgba(0, 245, 255, 0.6));
+}
+
+.lifetime-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #00f5ff;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 5px rgba(0, 245, 255, 0.6);
+}
+
+/* Slider container */
+.lifetime-slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Slider personalizado */
+.lifetime-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 245, 255, 0.1);
+  border: 2px solid #00f5ff;
+  border-radius: 10px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.3), inset 0 0 5px rgba(0, 245, 255, 0.1);
+}
+
+.lifetime-slider:hover {
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.5), inset 0 0 8px rgba(0, 245, 255, 0.2);
+}
+
+.lifetime-slider:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Thumb del slider - Webkit (Chrome, Safari) */
+.lifetime-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #00f5ff, #00d4ff);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 2px solid #fff;
+}
+
+.lifetime-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 25px rgba(0, 245, 255, 1), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.lifetime-slider::-webkit-slider-thumb:active {
+  transform: scale(1.1);
+}
+
+/* Thumb del slider - Firefox */
+.lifetime-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #00f5ff, #00d4ff);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 2px solid #fff;
+}
+
+.lifetime-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 25px rgba(0, 245, 255, 1), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.lifetime-slider::-moz-range-thumb:active {
+  transform: scale(1.1);
+}
+
+/* Marcadores de min/max */
+.lifetime-markers {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0 0.2rem;
+}
+
+/* Indicador visual del nivel */
+.lifetime-indicator {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 245, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 245, 255, 0.3);
+}
+
+.lifetime-fill {
+  height: 100%;
+  background: linear-gradient(to right, #00f5ff, #00d4ff);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.6);
+}
+
+/* Controles de cantidad de partículas */
+.particle-count-control {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 245, 255, 0.2);
+  margin-top: 0.5rem;
+}
+
+.particle-count-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.particle-count-label svg {
+  color: #00f5ff;
+  filter: drop-shadow(0 0 3px rgba(0, 245, 255, 0.6));
+}
+
+.particle-count-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #00f5ff;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 5px rgba(0, 245, 255, 0.6);
+}
+
+/* Slider de cantidad container */
+.particle-count-slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Slider de cantidad personalizado */
+.particle-count-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 245, 255, 0.1);
+  border: 2px solid #00f5ff;
+  border-radius: 10px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.3), inset 0 0 5px rgba(0, 245, 255, 0.1);
+}
+
+.particle-count-slider:hover {
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.5), inset 0 0 8px rgba(0, 245, 255, 0.2);
+}
+
+.particle-count-slider:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Thumb del slider de cantidad - Webkit */
+.particle-count-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #00f5ff, #00d4ff);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 2px solid #fff;
+}
+
+.particle-count-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 25px rgba(0, 245, 255, 1), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.particle-count-slider::-webkit-slider-thumb:active {
+  transform: scale(1.1);
+}
+
+/* Thumb del slider de cantidad - Firefox */
+.particle-count-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #00f5ff, #00d4ff);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 2px solid #fff;
+}
+
+.particle-count-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 25px rgba(0, 245, 255, 1), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.particle-count-slider::-moz-range-thumb:active {
+  transform: scale(1.1);
+}
+
+/* Marcadores de cantidad min/max */
+.particle-count-markers {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0 0.2rem;
+}
+
+/* Indicador visual de cantidad */
+.particle-count-indicator {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 245, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 245, 255, 0.3);
+}
+
+.particle-count-fill {
+  height: 100%;
+  background: linear-gradient(to right, #00f5ff, #00d4ff);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.6);
+}
+
+/* Footer */
+.settings-particle-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  background: rgba(0, 245, 255, 0.05);
+  border: 1px solid rgba(0, 245, 255, 0.2);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.settings-particle-footer svg {
+  color: #00f5ff;
+  filter: drop-shadow(0 0 3px rgba(0, 245, 255, 0.6));
+  flex-shrink: 0;
+}
+
+/* Mecánicas Avanzadas */
+.advanced-mechanics-section {
+  background: rgba(138, 43, 226, 0.05);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(138, 43, 226, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.2);
+}
+
+.advanced-mechanics-section:hover {
+  box-shadow: 0 0 25px rgba(138, 43, 226, 0.3);
+}
+
+.advanced-mechanics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.advanced-mechanics-info {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.advanced-mechanics-info svg {
+  color: #a855f7;
+  filter: drop-shadow(0 0 3px rgba(168, 85, 247, 0.6));
+}
+
+.advanced-mechanics-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.advanced-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+.advanced-controls.visible {
+  opacity: 1;
+  max-height: 800px;
+}
+
+.advanced-control-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  transition: all 0.3s ease;
+}
+
+.advanced-control-item:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.advanced-control-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.advanced-control-label svg {
+  color: #a855f7;
+  filter: drop-shadow(0 0 3px rgba(168, 85, 247, 0.6));
+}
+
+.advanced-control-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #a855f7;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 5px rgba(168, 85, 247, 0.6);
+}
+
+.advanced-slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.advanced-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: rgba(168, 85, 247, 0.1);
+  border: 2px solid #a855f7;
+  border-radius: 10px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3), inset 0 0 5px rgba(168, 85, 247, 0.1);
+}
+
+.advanced-slider:hover {
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.5), inset 0 0 8px rgba(168, 85, 247, 0.2);
+}
+
+.advanced-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #a855f7, #8b5cf6);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 2px solid #fff;
+}
+
+.advanced-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 25px rgba(168, 85, 247, 1), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.advanced-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #a855f7, #8b5cf6);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 2px solid #fff;
+}
+
+.advanced-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 25px rgba(168, 85, 247, 1), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.advanced-markers {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  padding: 0 0.2rem;
+  transition: color 0.3s ease;
+}
+
+.advanced-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.advanced-warning svg {
+  color: #a855f7;
+  filter: drop-shadow(0 0 3px rgba(168, 85, 247, 0.6));
+  flex-shrink: 0;
+}
+
+/* Sección de Congelación de Partículas */
+.freeze-section {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(37, 99, 235, 0.04));
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+}
+
+.freeze-section:hover {
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.freeze-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.freeze-info {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex: 1;
+}
+
+.freeze-info svg {
+  color: #3b82f6;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.6));
+  flex-shrink: 0;
+}
+
+.freeze-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.freeze-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.freeze-description {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-weight: 400;
+  transition: color 0.3s ease;
+}
+
+/* Info box cuando está congelado */
+.freeze-info-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  margin-top: 1rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.freeze-info-box.visible {
+  opacity: 1;
+  max-height: 100px;
+}
+
+.freeze-info-box svg {
+  color: #3b82f6;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.6));
+  flex-shrink: 0;
+}
+
+/* Toggle especial para freeze */
+.freeze-toggle input:checked + .toggle-slider {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5), inset 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+.freeze-toggle input:checked + .toggle-slider:before {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .particle-type-section {
+    padding: 0.8rem;
+  }
+
+  .particle-type-label {
+    font-size: 0.9rem;
+  }
+
+  .toggle-switch {
+    width: 44px;
+    height: 24px;
+  }
+
+  .toggle-slider:before {
+    width: 16px;
+    height: 16px;
+  }
+
+  .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+  }
+
+  .lifetime-value,
+  .particle-count-value {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-particle-container {
+    gap: 1rem;
+  }
+
+  .settings-particle-body {
+    gap: 1rem;
+  }
+
+  .particle-type-section {
+    padding: 0.7rem;
+  }
+
+  .lifetime-slider::-webkit-slider-thumb,
+  .particle-count-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+  }
+
+  .lifetime-slider::-moz-range-thumb,
+  .particle-count-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Animaciones para reducción de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .particle-type-section,
+  .toggle-slider,
+  .toggle-slider:before,
+  .particle-type-controls,
+  .lifetime-slider,
+  .lifetime-fill,
+  .particle-count-slider,
+  .particle-count-fill {
+    transition: none;
+  }
+}

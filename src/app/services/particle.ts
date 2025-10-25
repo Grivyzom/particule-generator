@@ -36,6 +36,43 @@ export class ParticleService {
   public currentLeftClickShape: ParticleShape = 'star';
   public currentRightClickShape: ParticleShape = 'diamond';
 
+  // Control de habilitación de partículas por tipo
+  public trailEnabled = true;
+  public leftClickEnabled = true;
+  public rightClickEnabled = true;
+
+  // Control de cuadrícula
+  public showGrid = false;
+
+  // Control de pausa
+  public isPaused = false;
+
+  // Control de congelación de partículas
+  public isParticlesFrozen = false;
+
+  // Color de fondo
+  public backgroundColor = '#0a0a14';
+
+  // Mecánicas avanzadas
+  public advancedMechanicsEnabled = false;
+  public gravity = 0.08;              // Fuerza de gravedad (0 = sin gravedad, 0.5 = fuerte)
+  public friction = 0.98;              // Fricción del aire (1 = sin fricción, 0 = fricción máxima)
+  public speedMultiplier = 1.0;        // Multiplicador de velocidad inicial (0.5 = lento, 2.0 = rápido)
+  public particleInteraction = false;  // Interacción entre partículas
+
+  // Tiempo de vida base para cada tipo (en frames)
+  public trailLifetime = 60;
+  public leftClickLifetime = 80;
+  public rightClickLifetime = 90;
+
+  // Cantidad de partículas por acción
+  public trailParticleCount = 3;        // Partículas por frame de rastro
+  public leftClickParticleCount = 50;   // Partículas por click izquierdo
+  public rightClickParticleCount = 35;  // Partículas por click derecho (base para las 3 ondas)
+
+  // Nivel de zoom actual
+  private currentZoomLevel = 1;
+
   // Colores personalizables para diferentes tipos de partículas
   public trailColors = [
     '#FF6B9D', '#C44569', '#FFA07A', '#FFB6C1',
@@ -60,8 +97,16 @@ export class ParticleService {
   }
 
   resizeCanvas(): void {
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
+    // Ajustar el tamaño del canvas según el nivel de zoom
+    // Cuando zoom < 1 (alejado), el canvas debe ser más grande
+    // Cuando zoom > 1 (acercado), el canvas debe ser más pequeño
+    this.canvas.width = window.innerWidth / this.currentZoomLevel;
+    this.canvas.height = window.innerHeight / this.currentZoomLevel;
+  }
+
+  setZoomLevel(zoomLevel: number): void {
+    this.currentZoomLevel = zoomLevel;
+    this.resizeCanvas();
   }
 
   private startAnimation(): void {
@@ -74,6 +119,9 @@ export class ParticleService {
   }
 
   createTrailParticles(x: number, y: number): void {
+    // No crear partículas si están deshabilitadas o pausadas
+    if (!this.trailEnabled || this.isPaused) return;
+
     // Solo crear partículas si el mouse se ha movido lo suficiente
     const dx = x - this.lastMouseX;
     const dy = y - this.lastMouseY;
@@ -85,23 +133,28 @@ export class ParticleService {
     this.lastMouseY = y;
     this.trailCounter++;
 
-    // Crear 2-3 partículas de trail por frame
-    const count = Math.random() > 0.5 ? 2 : 3;
+    // Usar la cantidad configurable de partículas de trail
+    const count = this.trailParticleCount;
     
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = this.currentTrailShape === 'lightning' 
+      let speed = this.currentTrailShape === 'lightning'
         ? Math.random() * 3 + 2  // Rayos más rápidos
         : Math.random() * 0.5 + 0.2;
-      
+
+      // Aplicar multiplicador de velocidad si mecánicas avanzadas están activas
+      if (this.advancedMechanicsEnabled) {
+        speed *= this.speedMultiplier;
+      }
+
       let particleColor = this.trailColors[Math.floor(Math.random() * this.trailColors.length)];
-      
+
       // Corazones siempre rojos
       if (this.currentTrailShape === 'heart') {
         const redShades = ['#FF0000', '#DC143C', '#FF1493', '#C71585', '#FF69B4'];
         particleColor = redShades[Math.floor(Math.random() * redShades.length)];
       }
-      
+
       const particle: Particle = {
         id: this.nextId++,
         x: x + (Math.random() - 0.5) * 10,
@@ -112,7 +165,7 @@ export class ParticleService {
         color: particleColor,
         alpha: 1,
         life: 0,
-        maxLife: this.currentTrailShape === 'lightning' ? 120 + Math.random() * 60 : 60 + Math.random() * 40,
+        maxLife: this.currentTrailShape === 'lightning' ? this.trailLifetime * 2 + Math.random() * 60 : this.trailLifetime + Math.random() * 40,
         type: 'trail',
         shape: this.currentTrailShape,
         blur: this.currentTrailShape === 'lightning' ? 8 : 3,
@@ -130,22 +183,30 @@ export class ParticleService {
   }
 
   createLeftClickParticles(x: number, y: number): void {
-    const count = 40 + Math.floor(Math.random() * 20);
+    // No crear partículas si están deshabilitadas o pausadas
+    if (!this.leftClickEnabled || this.isPaused) return;
+
+    const count = this.leftClickParticleCount;
     
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + Math.random() * 0.3;
-      const speed = this.currentLeftClickShape === 'lightning' 
+      let speed = this.currentLeftClickShape === 'lightning'
         ? Math.random() * 6 + 3  // Rayos más rápidos
         : Math.random() * 4 + 2;
-      
+
+      // Aplicar multiplicador de velocidad si mecánicas avanzadas están activas
+      if (this.advancedMechanicsEnabled) {
+        speed *= this.speedMultiplier;
+      }
+
       let particleColor = this.leftClickColors[Math.floor(Math.random() * this.leftClickColors.length)];
-      
+
       // Corazones siempre rojos
       if (this.currentLeftClickShape === 'heart') {
         const redShades = ['#FF0000', '#DC143C', '#FF1493', '#C71585', '#FF69B4'];
         particleColor = redShades[Math.floor(Math.random() * redShades.length)];
       }
-      
+
       const particle: Particle = {
         id: this.nextId++,
         x,
@@ -156,7 +217,7 @@ export class ParticleService {
         color: particleColor,
         alpha: 1,
         life: 0,
-        maxLife: this.currentLeftClickShape === 'lightning' ? 150 + Math.random() * 70 : 80 + Math.random() * 40,
+        maxLife: this.currentLeftClickShape === 'lightning' ? this.leftClickLifetime * 2 + Math.random() * 70 : this.leftClickLifetime + Math.random() * 40,
         type: 'leftClick',
         shape: this.currentLeftClickShape,
         rotation: Math.random() * Math.PI * 2,
@@ -176,26 +237,34 @@ export class ParticleService {
   }
 
   createRightClickParticles(x: number, y: number): void {
-    const count = 30 + Math.floor(Math.random() * 15);
-    
+    // No crear partículas si están deshabilitadas o pausadas
+    if (!this.rightClickEnabled || this.isPaused) return;
+
+    const count = this.rightClickParticleCount;
+
     // Crear un efecto de ondas expansivas
     for (let wave = 0; wave < 3; wave++) {
       const waveParticles = Math.floor(count / 3);
       setTimeout(() => {
         for (let i = 0; i < waveParticles; i++) {
           const angle = (Math.PI * 2 * i) / waveParticles;
-          const speed = this.currentRightClickShape === 'lightning' 
+          let speed = this.currentRightClickShape === 'lightning'
             ? 4 + wave * 2 + Math.random() * 3  // Rayos más rápidos
             : 3 + wave * 1.5 + Math.random() * 2;
-          
+
+          // Aplicar multiplicador de velocidad si mecánicas avanzadas están activas
+          if (this.advancedMechanicsEnabled) {
+            speed *= this.speedMultiplier;
+          }
+
           let particleColor = this.rightClickColors[Math.floor(Math.random() * this.rightClickColors.length)];
-          
+
           // Corazones siempre rojos
           if (this.currentRightClickShape === 'heart') {
             const redShades = ['#FF0000', '#DC143C', '#FF1493', '#C71585', '#FF69B4'];
             particleColor = redShades[Math.floor(Math.random() * redShades.length)];
           }
-          
+
           const particle: Particle = {
             id: this.nextId++,
             x,
@@ -206,7 +275,7 @@ export class ParticleService {
             color: particleColor,
             alpha: 1,
             life: 0,
-            maxLife: this.currentRightClickShape === 'lightning' ? 180 + Math.random() * 80 : 100 + Math.random() * 50,
+            maxLife: this.currentRightClickShape === 'lightning' ? this.rightClickLifetime * 2 + Math.random() * 80 : this.rightClickLifetime + Math.random() * 50,
             type: 'rightClick',
             shape: this.currentRightClickShape,
             rotation: angle,
@@ -228,28 +297,37 @@ export class ParticleService {
   }
 
   private update(): void {
+    // Si las partículas están congeladas, no actualizar
+    if (this.isParticlesFrozen) {
+      return;
+    }
+
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
-      
+
       // Actualizar posición
       p.x += p.vx;
       p.y += p.vy;
-      
-      // Aplicar gravedad suave (excepto para rayos)
+
+      // Aplicar gravedad (usar valores configurables si mecánicas avanzadas están activas)
+      const gravityValue = this.advancedMechanicsEnabled ? this.gravity : 0.08;
       if (p.shape !== 'lightning' && (p.type === 'leftClick' || p.type === 'rightClick')) {
-        p.vy += 0.08;
+        p.vy += gravityValue;
       }
-      
-      // Fricción (los rayos mantienen más velocidad)
+
+      // Fricción (usar valores configurables si mecánicas avanzadas están activas)
+      const frictionValue = this.advancedMechanicsEnabled ? this.friction : 0.98;
+      const lightningFriction = this.advancedMechanicsEnabled ? this.friction : 0.99;
+
       if (p.shape === 'lightning') {
-        p.vx *= 0.99;
-        p.vy *= 0.99;
-        
+        p.vx *= lightningFriction;
+        p.vy *= lightningFriction;
+
         // Regenerar puntos del rayo para efecto dinámico
         if (p.life % 3 === 0) {
           p.electricPoints = this.generateLightningPoints(5);
         }
-        
+
         // Cambiar color del rayo según su vida (transición de colores)
         const lifeRatio = p.life / p.maxLife;
         if (lifeRatio < 0.3) {
@@ -263,8 +341,8 @@ export class ParticleService {
           p.color = `hsl(${10 + lifeRatio * 40}, 100%, ${50 + Math.random() * 10}%)`;
         }
       } else {
-        p.vx *= 0.98;
-        p.vy *= 0.98;
+        p.vx *= frictionValue;
+        p.vy *= frictionValue;
       }
       
       // Actualizar rotación
@@ -294,11 +372,41 @@ export class ParticleService {
     }
   }
 
+  private drawGrid(): void {
+    const gridSize = 50; // Tamaño de cada celda de la cuadrícula
+    this.ctx.save();
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    this.ctx.lineWidth = 1;
+
+    // Dibujar líneas verticales
+    for (let x = 0; x <= this.canvas.width; x += gridSize) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, 0);
+      this.ctx.lineTo(x, this.canvas.height);
+      this.ctx.stroke();
+    }
+
+    // Dibujar líneas horizontales
+    for (let y = 0; y <= this.canvas.height; y += gridSize) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y);
+      this.ctx.lineTo(this.canvas.width, y);
+      this.ctx.stroke();
+    }
+
+    this.ctx.restore();
+  }
+
   private render(): void {
-    // Limpiar con un fade suave para crear efecto de trail
-    this.ctx.fillStyle = 'rgba(10, 10, 20, 0.15)';
+    // Limpiar el canvas completamente sin marcas
+    this.ctx.fillStyle = this.backgroundColor;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    
+
+    // Dibujar cuadrícula si está activada
+    if (this.showGrid) {
+      this.drawGrid();
+    }
+
     // Dibujar partículas
     for (const p of this.particles) {
       this.ctx.save();
@@ -559,6 +667,27 @@ export class ParticleService {
 
   getParticleCount(): number {
     return this.particles.length;
+  }
+
+  pause(): void {
+    this.isPaused = true;
+  }
+
+  resume(): void {
+    this.isPaused = false;
+  }
+
+  toggleFreezeParticles(): void {
+    this.isParticlesFrozen = !this.isParticlesFrozen;
+
+    // Si se desactiva la congelación, limpiar todas las partículas
+    if (!this.isParticlesFrozen) {
+      this.clearAllParticles();
+    }
+  }
+
+  clearAllParticles(): void {
+    this.particles = [];
   }
 
   destroy(): void {

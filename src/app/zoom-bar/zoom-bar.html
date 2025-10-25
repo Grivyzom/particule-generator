@@ -1,0 +1,64 @@
+<div class="zoom-bar-container" [class.expanded]="isExpanded">
+  <!-- Botón principal para expandir/colapsar -->
+  <button
+    class="zoom-toggle-btn"
+    (click)="toggleExpand()"
+    [attr.aria-label]="isExpanded ? 'Cerrar barra de zoom' : 'Abrir barra de zoom'"
+    [attr.aria-expanded]="isExpanded">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="M21 21l-4.35-4.35"></path>
+      <line x1="11" y1="8" x2="11" y2="14"></line>
+      <line x1="8" y1="11" x2="14" y2="11"></line>
+    </svg>
+  </button>
+
+  <!-- Panel expandible con controles de zoom -->
+  <div class="zoom-controls" [class.visible]="isExpanded">
+    <!-- Zoom In -->
+    <button
+      class="zoom-btn zoom-in"
+      (click)="zoomIn()"
+      [disabled]="!canZoomIn()"
+      aria-label="Acercar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </button>
+
+    <!-- Indicador de porcentaje -->
+    <div class="zoom-indicator">
+      <span class="zoom-percentage">{{ getZoomPercentage() }}</span>
+    </div>
+
+    <!-- Reset -->
+    <button
+      class="zoom-btn zoom-reset"
+      (click)="resetZoom()"
+      aria-label="Resetear zoom">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 4v6h6"></path>
+        <path d="M23 20v-6h-6"></path>
+        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+      </svg>
+    </button>
+
+    <!-- Zoom Out -->
+    <button
+      class="zoom-btn zoom-out"
+      (click)="zoomOut()"
+      [disabled]="!canZoomOut()"
+      aria-label="Alejar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </button>
+
+    <!-- Barra visual de zoom -->
+    <div class="zoom-scale">
+      <div class="zoom-scale-fill" [style.width.%]="((currentZoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100"></div>
+      <div class="zoom-scale-marker" [style.left.%]="((currentZoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100"></div>
+    </div>
+  </div>
+</div>
