@@ -1133,17 +1133,6 @@ export class ParticleService {
   }
 
   /**
-   * Mueve un atractor a una nueva posición
-   */
-  moveSingularity(singularityId: number, newX: number, newY: number): void {
-    const singularity = this.singularities.find(s => s.id === singularityId);
-    if (singularity) {
-      singularity.x = newX;
-      singularity.y = newY;
-    }
-  }
-
-  /**
    * Actualiza la velocidad de un atractor (útil para drag and drop)
    */
   setSingularityVelocity(singularityId: number, vx: number, vy: number): void {
