@@ -228,17 +228,45 @@ export class SettingsParticle {
   }
 
   /**
-   * Resetea la singularidad a sus valores iniciales
+   * Resetea todas las singularidades a sus valores iniciales
    */
-  resetSingularity(): void {
-    this.particleService().resetSingularity();
+  resetAllSingularities(): void {
+    this.particleService().resetAllSingularities();
   }
 
   /**
-   * Destruye la singularidad por completo
+   * Destruye todas las singularidades
    */
-  destroySingularity(): void {
-    this.particleService().destroySingularity();
+  destroyAllSingularities(): void {
+    this.particleService().destroyAllSingularities();
+  }
+
+  /**
+   * Actualiza la masa crítica
+   */
+  updateMCrit(value: number): void {
+    this.particleService().M_crit = value;
+  }
+
+  /**
+   * Actualiza el número de partículas de la Nova
+   */
+  updateNovaParticleCount(value: number): void {
+    this.particleService().novaParticleCount = value;
+  }
+
+  /**
+   * Actualiza la velocidad de la Nova
+   */
+  updateNovaSpeed(value: number): void {
+    this.particleService().novaSpeed = value;
+  }
+
+  /**
+   * Obtiene el número de atractores activos
+   */
+  getSingularityCount(): number {
+    return this.particleService().getSingularityCount();
   }
 
   // ========================================================

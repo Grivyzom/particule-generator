@@ -25,10 +25,14 @@ export interface Particle {
 /**
  * Singularidad - Atractor Gravitatorio
  * Implementa un pozo gravitatorio que crece mediante acreción de partículas
+ * Ahora con capacidad de movimiento e interacción N-cuerpos
  */
 export interface Singularity {
-  x: number;               // Posición X
-  y: number;               // Posición Y
+  id: number;             // ID único
+  x: number;              // Posición X
+  y: number;              // Posición Y
+  vx: number;             // Velocidad X
+  vy: number;             // Velocidad Y
   M_S: number;            // Masa acumulada (crece con cada partícula absorbida)
   R_C: number;            // Radio de captura (horizonte de eventos)
   particlesAbsorbed: number; // Contador de partículas absorbidas
@@ -88,14 +92,20 @@ export class ParticleService {
 
   // ========== SISTEMA DE ATRACTOR GRAVITATORIO (SINGULARIDAD) ==========
 
-  // Singularidad (puede ser null si no está activa)
-  private singularity: Singularity | null = null;
+  // Array de Singularidades (Sistema N-cuerpos)
+  private singularities: Singularity[] = [];
+  private nextSingularityId = 0;
 
   // Constantes físicas de la simulación
   public G_sim = 50.0;              // Constante gravitacional simulada
   public k_crecimiento = 0.01;      // Constante de crecimiento del radio (R_C = k · M_S)
   public m_p = 0.01;                // Masa base de cada partícula
   public M_S_inicial = 1000;        // Masa inicial de la singularidad
+  public M_crit = 10000;            // Masa crítica - límite de estabilidad (evento Nova)
+
+  // Parámetros del evento Nova (explosión)
+  public novaParticleCount = 200;   // Número de partículas expulsadas en Nova
+  public novaSpeed = 10;            // Velocidad inicial de partículas expulsadas
 
   // Control del atractor
   public attractorEnabled = false;  // Activar/desactivar el atractor
@@ -335,49 +345,157 @@ export class ParticleService {
       return;
     }
 
-    // ========== FÍSICA DEL ATRACTOR GRAVITATORIO ==========
-    // Procesar atracción y acreción si el atractor está activo
-    if (this.attractorEnabled && this.singularity) {
+    // ========== FÍSICA DEL SISTEMA N-CUERPOS (ATRACTORES) ==========
+    if (this.attractorEnabled && this.singularities.length > 0) {
+
+      // 1. INTERACCIÓN ATRACTOR-ATRACTOR (S_i → S_j)
+      for (let i = 0; i < this.singularities.length; i++) {
+        const S_A = this.singularities[i];
+
+        for (let j = i + 1; j < this.singularities.length; j++) {
+          const S_B = this.singularities[j];
+
+          // Calcular distancia entre atractores
+          const dx = S_B.x - S_A.x;
+          const dy = S_B.y - S_A.y;
+          const r_AB = Math.sqrt(dx * dx + dy * dy);
+
+          if (r_AB > 0) {
+            // Fuerza gravitatoria mutua: F_AB = G_sim · (M_SA · M_SB) / r²
+            const F_AB = this.G_sim * (S_A.M_S * S_B.M_S) / (r_AB * r_AB);
+
+            // Aceleraciones (a = F / M)
+            const a_A = F_AB / S_A.M_S;
+            const a_B = F_AB / S_B.M_S;
+
+            // Componentes direccionales
+            const dirX = dx / r_AB;
+            const dirY = dy / r_AB;
+
+            // Aplicar aceleraciones mutuamente
+            S_A.vx += dirX * a_A;
+            S_A.vy += dirY * a_A;
+            S_B.vx -= dirX * a_B;
+            S_B.vy -= dirY * a_B;
+          }
+        }
+      }
+
+      // 2. ACTUALIZAR POSICIONES DE ATRACTORES
+      for (const S of this.singularities) {
+        S.x += S.vx;
+        S.y += S.vy;
+      }
+
+      // 3. VERIFICAR FUSIONES (r_AB ≤ R_CA + R_CB)
+      for (let i = this.singularities.length - 1; i >= 0; i--) {
+        for (let j = i - 1; j >= 0; j--) {
+          const S_A = this.singularities[i];
+          const S_B = this.singularities[j];
+
+          const dx = S_B.x - S_A.x;
+          const dy = S_B.y - S_A.y;
+          const r_AB = Math.sqrt(dx * dx + dy * dy);
+
+          // Condición de fusión
+          if (r_AB <= (S_A.R_C + S_B.R_C)) {
+            // Conservación de Masa
+            const M_nuevo = S_A.M_S + S_B.M_S;
+
+            // Conservación de Momento (promedio ponderado)
+            const vx_nuevo = (S_A.M_S * S_A.vx + S_B.M_S * S_B.vx) / M_nuevo;
+            const vy_nuevo = (S_A.M_S * S_A.vy + S_B.M_S * S_B.vy) / M_nuevo;
+
+            // Centro de masa
+            const x_nuevo = (S_A.M_S * S_A.x + S_B.M_S * S_B.x) / M_nuevo;
+            const y_nuevo = (S_A.M_S * S_A.y + S_B.M_S * S_B.y) / M_nuevo;
+
+            // Nuevo Radio de Captura
+            const R_C_nuevo = this.k_crecimiento * M_nuevo;
+
+            // Crear nuevo atractor fusionado
+            const S_nuevo: Singularity = {
+              id: this.nextSingularityId++,
+              x: x_nuevo,
+              y: y_nuevo,
+              vx: vx_nuevo,
+              vy: vy_nuevo,
+              M_S: M_nuevo,
+              R_C: R_C_nuevo,
+              particlesAbsorbed: S_A.particlesAbsorbed + S_B.particlesAbsorbed
+            };
+
+            // Eliminar atractores viejos
+            this.singularities.splice(i, 1);
+            this.singularities.splice(j, 1);
+
+            // Añadir nuevo atractor
+            this.singularities.push(S_nuevo);
+
+            break; // Salir del bucle interno
+          }
+        }
+      }
+
+      // 4. FUERZA NETA SOBRE PARTÍCULAS (Suma vectorial de todos los atractores)
       for (let i = this.particles.length - 1; i >= 0; i--) {
         const p = this.particles[i];
+        let F_net_x = 0;
+        let F_net_y = 0;
+        let wasAbsorbed = false;
 
-        // Calcular distancia a la singularidad
-        const dx = this.singularity.x - p.x;
-        const dy = this.singularity.y - p.y;
-        const r = Math.sqrt(dx * dx + dy * dy);
+        for (const S of this.singularities) {
+          // Calcular distancia a este atractor
+          const dx = S.x - p.x;
+          const dy = S.y - p.y;
+          const r = Math.sqrt(dx * dx + dy * dy);
 
-        // Mecánica de Acreción: Verificar si la partícula ha cruzado el horizonte de eventos
-        if (r <= this.singularity.R_C) {
-          // Absorción: Transferir masa de la partícula a la singularidad
-          this.singularity.M_S += p.mass;
-          this.singularity.particlesAbsorbed++;
+          // Mecánica de Acreción
+          if (r <= S.R_C) {
+            // Absorción
+            S.M_S += p.mass;
+            S.particlesAbsorbed++;
+            S.R_C = this.k_crecimiento * S.M_S;
 
-          // Recalcular Radio de Captura: R_C = k_crecimiento · M_S
-          this.singularity.R_C = this.k_crecimiento * this.singularity.M_S;
+            this.particles.splice(i, 1);
+            wasAbsorbed = true;
+            break;
+          }
 
-          // Eliminar partícula inmediatamente
-          this.particles.splice(i, 1);
-          continue; // Saltar al siguiente ciclo
+          // Fuerza gravitatoria de este atractor
+          if (r > 0) {
+            const F_g = this.G_sim * (S.M_S * p.mass) / (r * r);
+            const dirX = dx / r;
+            const dirY = dy / r;
+
+            F_net_x += dirX * F_g;
+            F_net_y += dirY * F_g;
+          }
         }
 
-        // Física Gravitatoria: Aplicar fuerza de atracción
-        // F_g = G_sim · (M_S · m_p) / r²
-        // a = F_g / m_p = G_sim · M_S / r²
-        if (r > 0) { // Evitar división por cero
-          const F_g = this.G_sim * (this.singularity.M_S * p.mass) / (r * r);
-          const acceleration = F_g / p.mass; // a = F_g / m_p
+        // Aplicar fuerza neta
+        if (!wasAbsorbed) {
+          const a_x = F_net_x / p.mass;
+          const a_y = F_net_y / p.mass;
+          p.vx += a_x;
+          p.vy += a_y;
+        }
+      }
 
-          // Componentes direccionales (vector unitario hacia la singularidad)
-          const dirX = dx / r;
-          const dirY = dy / r;
+      // 5. VERIFICAR MASA CRÍTICA Y EVENTO NOVA
+      for (let i = this.singularities.length - 1; i >= 0; i--) {
+        const S = this.singularities[i];
 
-          // Aplicar aceleración como cambio en velocidad
-          p.vx += dirX * acceleration;
-          p.vy += dirY * acceleration;
+        if (S.M_S >= this.M_crit) {
+          // EVENTO NOVA - Explosión
+          this.triggerNova(S);
+
+          // Eliminar el atractor
+          this.singularities.splice(i, 1);
         }
       }
     }
-    // ========================================================
+    // ================================================================
 
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
@@ -510,11 +628,13 @@ export class ParticleService {
       this.ctx.restore();
     }
 
-    // ========== VISUALIZACIÓN DEL ATRACTOR GRAVITATORIO ==========
-    if (this.attractorEnabled && this.singularity && this.showAttractorVisuals) {
-      this.drawSingularity(this.singularity);
+    // ========== VISUALIZACIÓN DE ATRACTORES (SISTEMA N-CUERPOS) ==========
+    if (this.attractorEnabled && this.showAttractorVisuals) {
+      for (const S of this.singularities) {
+        this.drawSingularity(S);
+      }
     }
-    // ==============================================================
+    // ====================================================================
   }
 
   private drawShape(p: Particle): void {
@@ -837,44 +957,101 @@ export class ParticleService {
     this.particles = [];
   }
 
-  // ========== MÉTODOS DE CONTROL DEL ATRACTOR GRAVITATORIO ==========
+  /**
+   * Evento Nova - Explosión cuando un atractor alcanza masa crítica
+   * Conserva la masa convirtiendo el atractor en partículas expulsadas radialmente
+   */
+  private triggerNova(S: Singularity): void {
+    const N = this.novaParticleCount;
+    const totalMass = S.M_S;
+    const massPerParticle = totalMass / N;
+
+    // Generar explosión esférica de partículas
+    for (let i = 0; i < N; i++) {
+      // Ángulo aleatorio para distribución uniforme
+      const angle = (Math.PI * 2 * i) / N + (Math.random() - 0.5) * 0.1;
+
+      // Velocidad radial hacia afuera + velocidad residual del atractor
+      const speed = this.novaSpeed * (0.8 + Math.random() * 0.4);
+      const vx = Math.cos(angle) * speed + S.vx;
+      const vy = Math.sin(angle) * speed + S.vy;
+
+      // Color brillante para efecto visual dramático
+      const novaColors = ['#FF0000', '#FF4500', '#FFA500', '#FFD700', '#FFFF00', '#FF1493'];
+      const color = novaColors[Math.floor(Math.random() * novaColors.length)];
+
+      // Crear partícula de explosión
+      const particle: Particle = {
+        id: this.nextId++,
+        x: S.x + (Math.random() - 0.5) * S.R_C * 0.5,
+        y: S.y + (Math.random() - 0.5) * S.R_C * 0.5,
+        vx,
+        vy,
+        size: Math.random() * 6 + 3,
+        color,
+        alpha: 1,
+        life: 0,
+        maxLife: 120 + Math.random() * 60, // Vida más larga para efecto dramático
+        type: 'leftClick', // Tipo genérico
+        shape: 'star', // Estrellas para el efecto Nova
+        mass: massPerParticle, // Conservación de masa
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.3,
+        blur: 8,
+        glow: true
+      };
+
+      this.particles.push(particle);
+    }
+
+    console.log(`🌟 NOVA EVENT! Singularity ${S.id} exploded with M_S=${S.M_S.toFixed(2)} creating ${N} particles`);
+  }
+
+  // ========== MÉTODOS DE CONTROL DEL ATRACTOR GRAVITATORIO (SISTEMA N-CUERPOS) ==========
 
   /**
-   * Crea y activa la Singularidad en una posición específica
+   * Crea y añade una nueva Singularidad en una posición específica
    */
-  createSingularity(x: number, y: number): void {
+  createSingularity(x: number, y: number, vx: number = 0, vy: number = 0): void {
     // Calcular R_C inicial: R_C = k_crecimiento · M_S_inicial
     const initialR_C = this.k_crecimiento * this.M_S_inicial;
 
-    this.singularity = {
+    const newSingularity: Singularity = {
+      id: this.nextSingularityId++,
       x,
       y,
+      vx,
+      vy,
       M_S: this.M_S_inicial,
       R_C: initialR_C,
       particlesAbsorbed: 0
     };
 
+    this.singularities.push(newSingularity);
     this.attractorEnabled = true;
+
+    console.log(`✨ Created Singularity #${newSingularity.id} at (${x.toFixed(0)}, ${y.toFixed(0)})`);
   }
 
   /**
-   * Mueve la Singularidad a una nueva posición
+   * Mueve una Singularidad específica a una nueva posición
    */
-  moveSingularity(x: number, y: number): void {
-    if (this.singularity) {
-      this.singularity.x = x;
-      this.singularity.y = y;
+  moveSingularity(id: number, x: number, y: number): void {
+    const S = this.singularities.find(s => s.id === id);
+    if (S) {
+      S.x = x;
+      S.y = y;
     }
   }
 
   /**
-   * Activa/desactiva el atractor gravitatorio
+   * Activa/desactiva el sistema de atractores
    */
   toggleAttractor(): void {
     this.attractorEnabled = !this.attractorEnabled;
 
-    // Si se activa y no existe singularidad, crearla en el centro
-    if (this.attractorEnabled && !this.singularity) {
+    // Si se activa y no hay singularidades, crear una en el centro
+    if (this.attractorEnabled && this.singularities.length === 0) {
       const centerX = this.canvas.width / 2;
       const centerY = this.canvas.height / 2;
       this.createSingularity(centerX, centerY);
@@ -882,29 +1059,56 @@ export class ParticleService {
   }
 
   /**
-   * Reinicia la Singularidad a sus valores iniciales
+   * Reinicia todas las Singularidades a sus valores iniciales
    */
-  resetSingularity(): void {
-    if (this.singularity) {
-      this.singularity.M_S = this.M_S_inicial;
-      this.singularity.R_C = this.k_crecimiento * this.M_S_inicial;
-      this.singularity.particlesAbsorbed = 0;
+  resetAllSingularities(): void {
+    for (const S of this.singularities) {
+      S.M_S = this.M_S_inicial;
+      S.R_C = this.k_crecimiento * this.M_S_inicial;
+      S.particlesAbsorbed = 0;
+      S.vx = 0;
+      S.vy = 0;
     }
   }
 
   /**
-   * Destruye la Singularidad por completo
+   * Destruye todas las Singularidades
    */
-  destroySingularity(): void {
-    this.singularity = null;
+  destroyAllSingularities(): void {
+    this.singularities = [];
     this.attractorEnabled = false;
   }
 
   /**
-   * Obtiene información de la Singularidad actual
+   * Destruye una singularidad específica por ID
+   */
+  destroySingularity(id: number): void {
+    const index = this.singularities.findIndex(s => s.id === id);
+    if (index !== -1) {
+      this.singularities.splice(index, 1);
+      console.log(`💥 Destroyed Singularity #${id}`);
+    }
+  }
+
+  /**
+   * Obtiene información de todas las Singularidades
+   */
+  getAllSingularities(): Singularity[] {
+    return this.singularities;
+  }
+
+  /**
+   * Obtiene la primera singularidad (compatibilidad con UI anterior)
    */
   getSingularityInfo(): Singularity | null {
-    return this.singularity;
+    return this.singularities.length > 0 ? this.singularities[0] : null;
+  }
+
+  /**
+   * Cuenta el número total de atractores activos
+   */
+  getSingularityCount(): number {
+    return this.singularities.length;
   }
 
   // ==================================================================

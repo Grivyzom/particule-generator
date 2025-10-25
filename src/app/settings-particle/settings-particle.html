@@ -376,20 +376,96 @@
           </div>
         </div>
 
+        <!-- Masa Crítica (M_crit) - Límite de estabilidad -->
+        <div class="attractor-control-item critical-mass">
+          <label class="attractor-control-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            Masa Crítica (M_crit)
+          </label>
+          <div class="attractor-control-value">{{ particleService().M_crit.toFixed(0) }}</div>
+        </div>
+        <div class="attractor-slider-container">
+          <input
+            type="range"
+            class="attractor-slider critical-slider"
+            min="5000"
+            max="50000"
+            step="500"
+            [value]="particleService().M_crit"
+            (input)="updateMCrit(+$any($event.target).value)">
+          <div class="attractor-markers">
+            <span class="marker-min">5000</span>
+            <span class="marker-max">50000 (Explosión Nova)</span>
+          </div>
+        </div>
+
+        <!-- Parámetros de Nova (Explosión) -->
+        <div class="nova-parameters">
+          <div class="nova-header">
+            <span>⚡ Parámetros de Explosión Nova</span>
+          </div>
+
+          <div class="attractor-control-item">
+            <label class="attractor-control-label">
+              Partículas expulsadas
+            </label>
+            <div class="attractor-control-value">{{ particleService().novaParticleCount }}</div>
+          </div>
+          <div class="attractor-slider-container">
+            <input
+              type="range"
+              class="attractor-slider"
+              min="50"
+              max="500"
+              step="10"
+              [value]="particleService().novaParticleCount"
+              (input)="updateNovaParticleCount(+$any($event.target).value)">
+            <div class="attractor-markers">
+              <span class="marker-min">50</span>
+              <span class="marker-max">500</span>
+            </div>
+          </div>
+
+          <div class="attractor-control-item">
+            <label class="attractor-control-label">
+              Velocidad de explosión
+            </label>
+            <div class="attractor-control-value">{{ particleService().novaSpeed.toFixed(1) }}</div>
+          </div>
+          <div class="attractor-slider-container">
+            <input
+              type="range"
+              class="attractor-slider"
+              min="1"
+              max="30"
+              step="0.5"
+              [value]="particleService().novaSpeed"
+              (input)="updateNovaSpeed(+$any($event.target).value)">
+            <div class="attractor-markers">
+              <span class="marker-min">1</span>
+              <span class="marker-max">30</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Botones de control -->
         <div class="attractor-buttons">
-          <button class="attractor-btn reset-btn" (click)="resetSingularity()">
+          <button class="attractor-btn reset-btn" (click)="resetAllSingularities()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
               <path d="M3 3v5h5"/>
             </svg>
-            Resetear Singularidad
+            Resetear Todos
           </button>
-          <button class="attractor-btn destroy-btn" (click)="destroySingularity()">
+          <button class="attractor-btn destroy-btn" (click)="destroyAllSingularities()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
             </svg>
-            Destruir
+            Destruir Todos ({{ getSingularityCount() }})
           </button>
         </div>
 
@@ -400,7 +476,7 @@
             <line x1="12" y1="16" x2="12" y2="12"/>
             <line x1="12" y1="8" x2="12.01" y2="8"/>
           </svg>
-          <span>La singularidad crece absorbiendo partículas. Ecuación: R_C = k · M_S</span>
+          <span>Sistema N-cuerpos: Los atractores interactúan gravitatoriamente, se fusionan y explotan al alcanzar M_crit</span>
         </div>
       </div>
     </div>
