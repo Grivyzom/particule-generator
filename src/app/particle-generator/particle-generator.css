@@ -215,7 +215,7 @@
 .particle-counter {
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  left: 20px;
   padding: 0.6rem 1.2rem;
   background: rgba(15, 15, 30, 0.8);
   backdrop-filter: blur(10px);
@@ -223,7 +223,7 @@
   border: 2px solid rgba(0, 245, 255, 0.3);
   box-shadow: 0 0 20px rgba(0, 245, 255, 0.3), inset 0 0 10px rgba(0, 245, 255, 0.1);
   z-index: 50;
-  animation: slideInRight 0.5s ease-out;
+  animation: slideInLeft 0.5s ease-out;
   transition: all 0.3s ease;
   cursor: default;
 }
@@ -299,11 +299,11 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* Botón de ayuda/instrucciones (arriba) */
+/* Botón de ayuda/instrucciones (esquina superior izquierda) */
 .help-button {
   position: fixed;
-  bottom: 160px;
-  right: 20px;
+  top: 20px;
+  left: 20px;
   width: 56px;
   height: 56px;
   border: 2px solid #00f5ff;
@@ -339,9 +339,24 @@
   z-index: 50;
 }
 
-/* Botón de preferencias (oculto - movido a menú mobile) */
+/* Botón de preferencias (abajo) */
 .preferences-button {
-  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border: 2px solid #a855f7;
+  border-radius: 50%;
+  background: transparent;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5), inset 0 0 10px rgba(168, 85, 247, 0.1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 50;
 }
 
 .help-button:hover {
@@ -358,8 +373,16 @@
   background: rgba(168, 85, 247, 0.1);
 }
 
+.preferences-button:hover {
+  transform: scale(1.1);
+  border-color: #a855f7;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.8), inset 0 0 15px rgba(168, 85, 247, 0.2);
+  background: rgba(168, 85, 247, 0.1);
+}
+
 .settings-button:active,
-.help-button:active {
+.help-button:active,
+.preferences-button:active {
   transform: scale(0.95);
 }
 
@@ -369,6 +392,11 @@
 }
 
 .settings-button svg {
+  color: #a855f7;
+  filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.8));
+}
+
+.preferences-button svg {
   color: #a855f7;
   filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.8));
 }
@@ -890,9 +918,30 @@
 }
 
 /* Tooltips personalizados */
-.help-button::after,
 .settings-button::after,
-.particle-counter::after {
+.preferences-button::after {
+  content: attr(title);
+  position: absolute;
+  right: 70px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(15, 15, 30, 0.95);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+/* Tooltip para el botón de ayuda (aparece a la izquierda) */
+.help-button::after {
   content: attr(title);
   position: absolute;
   right: 70px;
@@ -913,15 +962,38 @@
   z-index: 100;
 }
 
+/* Tooltip para el contador de partículas (aparece a la derecha) */
+.particle-counter::after {
+  content: attr(title);
+  position: absolute;
+  left: calc(100% + 15px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(15, 15, 30, 0.95);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
 .help-button:hover::after,
 .settings-button:hover::after,
-.particle-counter:hover::after {
+.preferences-button:hover::after {
   opacity: 1;
   transform: translateY(-50%) translateX(-5px);
 }
 
-.settings-button::after {
-  border-color: rgba(168, 85, 247, 0.3);
+.particle-counter:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(5px);
 }
 
 /* Contenedor de controles desktop */
