@@ -157,51 +157,62 @@
           </h3>
           
           <div class="shape-config">
-            <label>Rastro del Cursor</label>
-            <div class="shape-options">
+            <label class="shape-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3"/>
+              </svg>
+              Rastro del Cursor
+            </label>
+            <select
+              class="shape-dropdown"
+              [value]="getCurrentShape('trail')"
+              (change)="setTrailShape($any($event.target).value)">
               @for (shape of availableShapes; track shape.value) {
-                <button 
-                  class="shape-btn"
-                  [class.active]="getCurrentShape('trail') === shape.value"
-                  (click)="setTrailShape(shape.value)"
-                  [title]="shape.label">
-                  <span class="shape-icon">{{ shape.icon }}</span>
-                  <span class="shape-label">{{ shape.label }}</span>
-                </button>
+                <option [value]="shape.value">
+                  {{ shape.icon }} {{ shape.label }}
+                </option>
               }
-            </div>
+            </select>
           </div>
 
           <div class="shape-config">
-            <label>Click Izquierdo</label>
-            <div class="shape-options">
+            <label class="shape-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M15 15v4.5m0-4.5h4.5m-4.5 0l5.25 5.25M9 15H4.5M9 15v4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25"/>
+              </svg>
+              Click Izquierdo
+            </label>
+            <select
+              class="shape-dropdown"
+              [value]="getCurrentShape('leftClick')"
+              (change)="setLeftClickShape($any($event.target).value)">
               @for (shape of availableShapes; track shape.value) {
-                <button 
-                  class="shape-btn"
-                  [class.active]="getCurrentShape('leftClick') === shape.value"
-                  (click)="setLeftClickShape(shape.value)"
-                  [title]="shape.label">
-                  <span class="shape-icon">{{ shape.icon }}</span>
-                  <span class="shape-label">{{ shape.label }}</span>
-                </button>
+                <option [value]="shape.value">
+                  {{ shape.icon }} {{ shape.label }}
+                </option>
               }
-            </div>
+            </select>
           </div>
 
           <div class="shape-config">
-            <label>Click Derecho</label>
-            <div class="shape-options">
+            <label class="shape-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="6"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+              Click Derecho
+            </label>
+            <select
+              class="shape-dropdown"
+              [value]="getCurrentShape('rightClick')"
+              (change)="setRightClickShape($any($event.target).value)">
               @for (shape of availableShapes; track shape.value) {
-                <button 
-                  class="shape-btn"
-                  [class.active]="getCurrentShape('rightClick') === shape.value"
-                  (click)="setRightClickShape(shape.value)"
-                  [title]="shape.label">
-                  <span class="shape-icon">{{ shape.icon }}</span>
-                  <span class="shape-label">{{ shape.label }}</span>
-                </button>
+                <option [value]="shape.value">
+                  {{ shape.icon }} {{ shape.label }}
+                </option>
               }
-            </div>
+            </select>
           </div>
         </div>
 
